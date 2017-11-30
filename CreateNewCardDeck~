@@ -1,0 +1,210 @@
+#!/bin/bash
+#!/usr/bin/env Rscript
+
+#################################################
+# ask for data (paths of AMM, MS, and Output Files.
+# check that these are valid paths
+#################################################
+
+rm TCRef.csv 2> /dev/null
+rm var.txt 2> /dev/null
+rm AMMGRAPHIC.SGM 2> /dev/null
+rm AMMTASK.SGM 2> /dev/null
+
+# Default Values
+pathtoAMM="./AMM.SGM"
+pathtoMS="./MS.xls"
+pathtoOutput="./Output/"
+progPATH="/media/carlo/DATA/AircraftEngineering/MTCProg"
+actype=""
+
+while :
+
+do
+
+
+# AMM.SGM
+echo -e ""
+echo -e "Welcome to the MPLA Initial Card Deck Generator"
+echo -e "This program creates a baseline card deck from an AMM.SGM file and an MS Excel"
+echo -e "Please have the following files / folders ready:"
+echo -e "1. AMM.SGM"
+echo -e "2. PAL MS Excel File"
+echo -e "3. Output Folder of Cards to be created"
+echo -e "Continue? (Y/N)"
+
+
+
+
+read r
+case $r in
+[Yy])
+
+while  ! [[ "$actype" =~ ^(A320|A330|A340)$ ]]; do
+        echo -e "Enter the Aircraft Type: (A320, A330, A340)"
+        read -e result
+	if [ "$result" != "" ]
+	   then
+	   actype=$result
+	   fi 
+	if ! [[ "$actype" =~ ^(A320|A330|A340)$ ]]; then
+	echo "Invalid Aircraft Type"	
+	fi
+done
+pathtoNewCards="/media/carlo/DATA/AircraftEngineering/MTC/$actype/$actype FINAL CARDS/NewCards/"
+
+
+echo -e "Enter path of the AMM.SGM file (e.g. ./AMM.SGM)"
+read -e result
+	if [ "$result" != "" ]
+	then
+	pathtoAMM=$result
+	fi
+if [ ! -f "$pathtoAMM" ];
+then
+   echo "Invalid AMM file"
+   exit
+fi
+
+# MS File
+echo -e "Enter path of the MS Excel file (e.g. ./MS.xls)"
+read -e result
+	if [ "$result" != "" ]
+	then
+	pathtoMS=$result
+	fi
+if [ ! -f "$pathtoMS" ];
+then
+   echo "Invalid MS file."
+   exit
+fi
+
+# Output Directory
+echo -e "Enter path of the Output Files (e.g. ./Output/)"
+read -e result
+	if [ "$result" != "" ]
+	then
+	pathtoOutput=$result
+	fi
+if [ ! -d "$pathtoOutput" ];
+then
+   echo "Folder not Found."
+   echo "Creating a $pathtoOutput folder in the current directory"
+   mkdir $pathtoOutput
+	pathtoOutput=`echo "./$pathtoOutput/"`
+fi
+
+#################################################
+# Process the AMM.SGM File
+#################################################
+
+# This processes the AMM.SGM to be :
+# 1. one Task per line
+if [ ! -f "AMMTASK.SGM" ];
+then
+echo "Creating AMMTASK.SGM"
+cat $pathtoAMM | tr '\n' ' ' | sed 's#<TASK CHAPNBR#\n<TASK CHAPNBR#g' | grep "^<TASK CHAPNBR" > AMMTASK.SGM
+fi
+
+# 2. consolidate the GRAPHICS.sgm
+if [ ! -f "AMMGRAPHIC.SGM" ];
+then
+echo "Creating AMMGRAPHIC.SGM"
+cat $pathtoAMM | tr '\n' ' ' | sed 's#<GRAPHIC CHAPNBR#\n<GRAPHIC CHAPNBR#g' | sed 's#</GRAPHIC>#</GRAPHIC>\n#g' | grep "^<GRAPHIC CHAPNBR" > AMMGRAPHIC.SGM
+fi
+
+# Put variables to var.txt so that it will be usable by the R script JITCG.R
+printf "\"pathtoAMM\",\"pathtoMS\",\"pathtoOutput\"\n" > var.txt
+printf "\"$pathtoAMM\",\"$pathtoMS\",\"$pathtoOutput\"\n" >> var.txt
+
+#################################################
+# Run JITCG.R to create the Initial Output Cards and the TCRef.csv
+#################################################
+
+echo -e "Running R Script: Creating Header for Task Cards"
+###########Insert R Code Here
+Rscript $progPATH/CreateNewCardDeck.R
+
+
+#################################################
+# Read TCRef.csv and additionally add to the Output Cards the AMM body from AMMTASK.SGM
+#################################################
+echo -e "Attaching AMM References"
+
+cat "TCRef.csv" | sed 's/"//g'| while IFS=, read -r f1 f2;
+	do
+	if [ "$f2" != "" ] 
+		then
+		grep "KEY=\"EN$f2" ./AMMTASK.SGM >> "$pathtoOutput/$f1.sgm"
+		fi
+		echo "</TCBODY>" >> "$pathtoOutput/$f1.sgm"
+#		echo -e "\t$pathtoOutput/$f1.sgm"
+done
+
+#################################################
+# Redo All of the Output Files to include Sign Offs
+#################################################
+
+echo -e "Writing Sign Offs"
+
+cat "TCRef.csv" | sed 's/"//g'| while IFS=, read -r f1 f2;
+	do
+	{ 
+	cat "$pathtoOutput/$f1.sgm" | sed 's#</SUBTASK>#\n<SO ID="1"></SO>\n</SUBTASK>#g' 
+	} > tmpfile
+	mv tmpfile "$pathtoOutput/$f1.sgm"
+#	echo -e "\t$pathtoOutput/$f1.sgm"
+
+done
+
+#################################################
+# Attach Graphic References
+#################################################
+
+echo -e "Attaching Graphic References"
+
+#bad to assume to work on all sgm files	
+cat "TCRef.csv" | sed 's/"//g'| while IFS=, read -r f1 f2;
+	do
+	result=$(grep -o "GNBR=\"[^\"]*\"" "$pathtoOutput/$f1.sgm")
+#	echo -e "\t$pathtoOutput/$f1.sgm,$result" | tr '\n' ','
+#	echo -e "\n"
+	if [ "$result" != "" ] 
+		then
+			echo -e "$result" | while read -r graphics;
+				do
+				grep "$result" ./AMMGRAPHIC.SGM >> "tmpfile"
+				done
+			cat "tmpfile" | sort -u > "tmpfile2"
+	 		rm "tmpfile"
+			cat "tmpfile2" >> "$pathtoOutput/$f1.sgm"
+			rm "tmpfile2"
+		fi
+#	echo -e "</TASKCARD>" >> "$pathtoOutput/$f1.sgm"
+
+done
+
+rm TCRef.csv 2> /dev/null
+rm var.txt 2> /dev/null
+rm AMMGRAPHIC.SGM 2> /dev/null
+rm AMMTASK.SGM 2> /dev/null
+echo -e "Finished Creating Your Deck of Cards!!"
+echo -e ""
+echo -e "Moving Cards to NewCards Deck!!"
+mv $pathtoOutput/*.sgm $pathtoNewCards
+
+make 
+
+;;
+# ------------------------
+[Nn])
+	exit
+
+;;
+*)
+	echo -e "Invalid Response"
+
+;;
+
+esac
+done

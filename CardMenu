@@ -1,0 +1,59 @@
+#!/bin/bash
+# This is a Program to process the Task Card Creation Menu
+
+# Ask user to input Variables
+progPATH="/media/carlo/DATA/AircraftEngineering/Task Card Creator Gian Replacement/System"
+
+
+while : 
+
+do
+
+echo -e " "
+echo -e "Welcome to the MPLA Task Card Crator!"
+echo -e "What do you want to do?"
+echo -e "M - Create a New Card Deck from AMM.SGM and MS.xls"
+echo -e "P - Print Card for AC"
+echo -e "X - Exit"
+#echo -e "*N - Create New Card"
+#echo -e "*R - Process Revision"
+#echo -e "*E - Edit Card"
+read R
+
+case $R in
+[Mm])
+	echo -e "Creating New Card Deck from AMM.SGM and MS Excel"
+	source "$progPATH/CreateNewCardDeck"
+	# JITCG replacement *CreateNewCardDeck
+	;;
+[Nn])
+	echo -e "Creating New Card"
+	echo -e "** Under Construction **"
+	;;
+
+[Rr])
+	echo -e "Processing Card Revision"
+	echo -e "** Under Construction **"
+	;;
+
+[Ee])
+	echo -e "Editing Existing Card"
+	echo -e "** Under Construction **"
+	;;
+
+[Pp])
+	#echo -e "Printing Card"
+	source "$progPATH/CardPrint"
+	;;
+[Xx])
+	echo -e "Exiting Program"
+	exit
+	;;
+
+*)
+	echo -e "Invalid Entry"
+	;;
+esac
+
+done
+

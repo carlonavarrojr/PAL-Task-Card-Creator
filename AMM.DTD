@@ -1,0 +1,455 @@
+<!-- ========================================================= -->
+<!-- This is the DTD of the Aircraft Maintenance Manual        -->
+<!--                                                           -->
+<!-- DTD reference: "-//ATA-TEXT//DTD AMM-VER1-LEVEL2//EN"     -->
+<!-- Revision Date: 2006/04/01                                 -->
+<!--                                                           -->
+<!-- HIGHLIGHTS:                                               -->
+<!--  1) CONNAME becomes optional in CON content.              -->
+<!--     (CR AIB.AMM.011.2003)                                 -->
+<!--                                                           -->
+<!-- DTD REVISION HISTORY:                                     -->
+<!-- Revision Date: 2004/10/01                                 -->
+<!--  1) Incorporated ISOgrk2,3,4 & ISOlat1.(ATA V6) and       -->
+<!--     ISObox,ISOamso & ISOamsc per ATA approved             -->
+<!--     DTD CR 2003-All-001. (ATA V8.1)                       -->
+<!--  2) Updated %ISOtech; %ISOpub; %ISOnum; %ISOgrk1;         -->
+<!--                                                           -->
+<!-- ========================================================= -->
+
+<!-- The following set of declarations may be referred to    
+     using a public entity as follows:                        
+<!DOCTYPE amm PUBLIC
+         "-//ATA-TEXT//DTD AMM-VER1-LEVEL2//EN">               -->
+
+<!-- ========================================================= -->
+<!--          NOTATIONS                                        -->
+<!-- ========================================================= -->
+<!NOTATION cgm PUBLIC '-//USA-DOD//NOTATION
+Computer Graphics Metafile//EN'                             >
+<!NOTATION ccitt4 PUBLIC '-//USA-DOD//NOTATION
+CCITT Group 4 Facsimile//EN'                                >
+
+<!-- ========================================================= -->
+<!--          ENTITIES                                         -->
+<!-- ========================================================= -->
+<!ENTITY   % g.r     '(grphcref*,refext*,refint*)'          >
+<!ENTITY   % w.c     '(warning*,caution*)'                  >
+<!ENTITY   % text    '(para|table|unlist|numlist|note)+'    >
+<!ENTITY   % deleted '(deleted,chgdesc?)'                   >
+<!ENTITY   % yesorno 'NUMBER'                               >
+<!ENTITY   % revatt
+  'chg      (N|R|U|D)   #REQUIRED
+   key      ID          #REQUIRED
+   poschg   ( A | I )   #IMPLIED
+   poskey   CDATA       #IMPLIED
+   revdate  NUMBER      #IMPLIED'                           >
+
+<!ENTITY   % stdwarn    SYSTEM  "AMM.SWE"                   >
+<!ENTITY   % stdcaut    SYSTEM  "AMM.SCE"                   >
+%stdwarn;  %stdcaut;
+
+<!ENTITY   % ISOtech     PUBLIC 
+     "ISO 8879-1986//ENTITIES General Technical//EN"        >
+<!ENTITY   % ISOpub      PUBLIC 
+     "ISO 8879-1986//ENTITIES Publishing//EN"               >
+<!ENTITY   % ISOnum      PUBLIC 
+ "ISO 8879-1986//ENTITIES   Numeric and Special Graphic//EN">
+<!ENTITY   % ISOgrk1     PUBLIC 
+     "ISO 8879-1986//ENTITIES Greek Letters//EN"            >
+<!ENTITY   % ISOgrk2     PUBLIC 
+     "ISO 8879-1986//ENTITIES Monotoniko Greek//EN"         >
+<!ENTITY   % ISOgrk3     PUBLIC 
+     "ISO 8879-1986//ENTITIES Greek Symbols//EN"            >
+<!ENTITY   % ISOgrk4     PUBLIC 
+     "ISO 8879-1986//ENTITIES Alternative Greek Symbols//EN">
+<!ENTITY   % ISOlat1     PUBLIC 
+     "ISO 8879-1986//ENTITIES Added Latin 1//EN"            >  
+<!ENTITY   % ISObox      PUBLIC
+     "ISO 8879-1986//ENTITIES Box and Line Drawing//EN"     >
+<!ENTITY   % ISOamso     PUBLIC
+  "ISO 8879-1986//ENTITIES Added Math Symbols: Ordinary//EN">
+<!ENTITY   % ISOamsc     PUBLIC
+"ISO 8879-1986//ENTITIES Added Math Symbols: Delimiters//EN">       
+
+%ISOtech;  %ISOpub;  %ISOnum;  %ISOgrk1; %ISOgrk2; %ISOgrk3;
+%ISOgrk4; %ISOlat1; %ISObox; %ISOamso; %ISOamsc;
+
+<!-- ========================================================= -->
+<!--     AMM TOP LEVEL STRUCTURE                               -->
+<!-- ========================================================= -->
+<!ELEMENT  amm      - - ((title,mfmatr,chapter+)|increv|tr+)
+                    +(revst|revend|cocst|cocend|docunit|hotlink) >
+<!ATTLIST  amm
+  spl      CDATA        #REQUIRED
+  model    CDATA        #REQUIRED
+  oidate   NUMBER       #REQUIRED
+  revdate  NUMBER       #REQUIRED
+  tsn      CDATA        #REQUIRED
+  cus      CDATA        #IMPLIED
+  docnbr   CDATA        #IMPLIED
+  lang     CDATA        #REQUIRED
+  chg      (N|R|U)      'N'                                      >
+
+<!ELEMENT  increv   - - (chapter|section|subject|pgblk|task|subtask
+                        |sheet|graphic|trltr|intro|effxref|sblist
+                        |coclist| drindex)+  >
+
+<!ELEMENT  tr       - - (trfmatr,(chapter|section+|subject+
+                        |pgblk+|task+|subtask+|sheet+|graphic+
+                        |effxref|sblist|coclist | drindex))      >
+<!ELEMENT  trfmatr  - - (title,%text;)                           >
+<!ATTLIST  trfmatr
+  trnbr    CDATA        #REQUIRED
+  trdel    CDATA        #IMPLIED
+  trrepl   CDATA        #IMPLIED
+  issdate  NUMBER       #REQUIRED                                >
+
+<!-- ========================================================== -->
+<!--     AMM FRONT MATTER                                       -->
+<!-- ========================================================== -->
+<!ELEMENT  mfmatr   - - (trltr?,intro, effxref, sblist, coclist?, drindex?)>
+
+<!ELEMENT  trltr    - - (chgdesc*,title,prclist1,trlist)          >
+<!ELEMENT  trlist   - - (trdata+|isempty)                         >
+<!ELEMENT  trdata   - - (trnbr,trstatus,trloc)                    >
+
+<!ELEMENT  intro    - - (chgdesc*,title, prclist1)                >
+
+<!ELEMENT  effxref  - - (chgdesc*,title,%text;,effdata+)          >
+<!ELEMENT  effdata  - - (cus?,modtype?,cec,linenbr?,venbr?,msnbr,acn)>
+
+<!ELEMENT  sblist   - - (chgdesc*,title,%text;,(sbdata+|isempty)) >
+<!ELEMENT  sbdata   - - (sbnbr?,sbtitle?,eonbr?,atanbr?,mdnbr*,
+                         cocnbr*,sc?,ics,custeff?)                >
+
+<!ELEMENT  coclist  - - (chgdesc*, title, %text;, (cocdata+ |isempty))>
+<!ELEMENT  cocdata  - - (cocnbr?, cocrev?, eonbr*, atanbr?, 
+			 mdnbr*, custeff?, sc?, title?, 
+                         (icdate | ics))>
+
+<!ELEMENT  drindex  - - (chgdesc*,title,%text;,drdata+)           >
+<!ELEMENT  drdata   - - (refext,drdesc,refint+)                   >
+
+<!ELEMENT  custeff  - - ((cus,effrc)+)                            >
+
+<!ELEMENT  (trnbr|trstatus|trloc|cus|effrc|modtype|cec|linenbr|venbr
+           |msnbr|acn|sbnbr|sbtitle|eonbr|atanbr|mdnbr|cocnbr|cocrev
+           |sc|ics|icdate|drdesc)   - - (#PCDATA)                 >
+<!ATTLIST  (trltr|intro|effxref|sblist|coclist|drindex)
+  %revatt;                                                        >
+
+<!-- ========================================================== -->
+<!--     CHAPTER                                                -->
+<!-- ========================================================== -->
+<!ELEMENT  chapter - - ((effect,chgdesc*,title,section+)|%deleted;)>
+<!ATTLIST  chapter  chapnbr  NUMBER       #REQUIRED
+  %revatt;                                                        >
+
+<!-- ========================================================== -->
+<!--     SECTION                                                -->
+<!-- ========================================================== -->
+<!ELEMENT  section - - ((effect,chgdesc*,title,subject+)|%deleted;)>
+<!ATTLIST  section
+  chapnbr  NUMBER       #IMPLIED
+  sectnbr  NUMBER       #REQUIRED
+  %revatt;                                                        >
+
+<!-- ========================================================== -->
+<!--     SUBJECT                                                -->
+<!-- ========================================================== -->
+<!ELEMENT  subject  - - ((effect,chgdesc*,title,pgblk+)|%deleted;)>
+<!ATTLIST  subject
+  chapnbr  NUMBER       #IMPLIED
+  sectnbr  NUMBER       #IMPLIED
+  subjnbr  NUMBER       #REQUIRED
+  %revatt;                                                        >
+
+<!-- ========================================================== -->
+<!--     PAGEBLOCK                                              -->
+<!-- ========================================================== -->
+<!ELEMENT pgblk     - - ((effect,chgdesc*,title,pbfmatr?,
+                        (task+|prclist1),graphic*)|%deleted;)     >
+<!ATTLIST  pgblk
+  chapnbr  NUMBER       #IMPLIED
+  sectnbr  NUMBER       #IMPLIED
+  subjnbr  NUMBER       #IMPLIED
+  pgblknbr NUMBER       #REQUIRED
+  confnbr  NUMBER       #IMPLIED
+ %revatt;                                                         >
+<!ELEMENT  pbfmatr  - - (title,%g.r;,(list1|%text;))              >
+
+<!-- ========================================================== -->
+<!--     TASK                                                   -->
+<!-- ========================================================== -->
+<!ELEMENT  task     - - ((effect,chgdesc*,title,%g.r;,%w.c;,
+                        note*,tfmatr?,topic*,graphic*)|%deleted;) >
+<!ATTLIST  task
+  chapnbr  NUMBER       #IMPLIED
+  sectnbr  NUMBER       #IMPLIED
+  subjnbr  NUMBER       #IMPLIED
+  func     CDATA        '   '
+  seq      NUMBER       0
+  confltr  CDATA        ' '
+  varnbr   NUMBER       0
+  alunqi   CDATA        '   '
+  pgblknbr NUMBER       #IMPLIED
+  %revatt;                                                        >
+
+<!-- ========================================================== -->
+<!--     TASK ASSOCIATED ELEMENTS                               -->
+<!-- ========================================================== -->
+<!ELEMENT  tfmatr   - - (pretopic+)                               >
+<!ELEMENT  pretopic - - (title,(%text;|list1))           +(effect)>
+<!ELEMENT  topic    - - (title,%g.r;,%w.c;,note*,subtask*)        >
+
+<!-- ========================================================== -->
+<!--     SUBTASK                                                -->
+<!-- ========================================================== -->
+<!ELEMENT  subtask  - - ((effect,chgdesc*,%g.r;,%w.c;,
+                        note*,list1)|%deleted;)          +(effect)>
+<!ATTLIST  subtask
+  chapnbr  NUMBER       #IMPLIED
+  sectnbr  NUMBER       #IMPLIED
+  subjnbr  NUMBER       #IMPLIED
+  func     CDATA        '   '
+  seq      NUMBER       0
+  confltr  CDATA        ' '
+  varnbr   NUMBER       0
+  alunqi   CDATA        '   '
+  %revatt;                                                        >
+
+<!-- ========================================================== -->
+<!--     PROCEDURE(INC D&O) LIST STRUCTURE                      -->
+<!-- ========================================================== -->
+<!ELEMENT  prclist1 - - (prcitem1+)                      +(effect)>
+<!ELEMENT  prclist2 - - (prcitem2+)                               >
+<!ELEMENT  prclist3 - - (prcitem3+)                               >
+<!ELEMENT  prclist4 - - (prcitem4+)                               >
+<!ELEMENT  prclist5 - - (prcitem5+)                               >
+<!ELEMENT  prclist6 - - (prcitem6+)                               >
+<!ELEMENT  prclist7 - - (prcitem7+)                               >
+<!ELEMENT  prcitem1 - - (prcitem, prclist2?, graphic*)            >
+<!ELEMENT  prcitem2 - - (prcitem, prclist3?)                      >
+<!ELEMENT  prcitem3 - - (prcitem, prclist4?)                      >
+<!ELEMENT  prcitem4 - - (prcitem, prclist5?)                      >
+<!ELEMENT  prcitem5 - - (prcitem, prclist6?)                      >
+<!ELEMENT  prcitem6 - - (prcitem, prclist7?)                      >
+<!ELEMENT  prcitem7 - - (prcitem)                                 >
+<!ELEMENT  prcitem  - - (title?, (%text;)?)                       >
+
+<!-- ========================================================== -->
+<!--     STANDARD LISTS                                         -->
+<!-- ========================================================== -->
+<!ELEMENT  list1    - - (l1item+)                                 >
+<!ELEMENT  list2    - - (l2item+)                                 >
+<!ELEMENT  list3    - - (l3item+)                                 >
+<!ELEMENT  list4    - - (l4item+)                                 >
+<!ELEMENT  list5    - - (l5item+)                                 >
+<!ELEMENT  list6    - - (l6item+)                                 >
+<!ELEMENT  list7    - - (l7item+)                                 >
+<!ELEMENT  l1item   - - (%w.c;, %text;, ((list2 | art),note*)?)   >
+<!ELEMENT  l2item   - - (%w.c;, %text;, (list3, note*)?)          >
+<!ELEMENT  l3item   - - (%w.c;, %text;, (list4, note*)?)          >
+<!ELEMENT  l4item   - - (%w.c;, %text;, (list5, note*)?)          >
+<!ELEMENT  l5item   - - (%w.c;, %text;, (list6, note*)?)          >
+<!ELEMENT  l6item   - - (%w.c;, %text;, (list7, note*)?)          >
+<!ELEMENT  l7item   - - (%w.c;, %text;)                           >
+
+<!-- ========================================================== -->
+<!--     ACTION RESULT TABLE                                    -->
+<!-- ========================================================== -->
+<!ELEMENT  art      - - ((%w.c;, note*, action)+)                 >
+<!ELEMENT  action   - - (%text;, result*)                         >
+<!ELEMENT  result   - - (%text;)                                  >
+
+<!-- ========================================================== -->
+<!--     TABLE (CELLULAR, CALS BASED)                           -->
+<!-- ========================================================== -->
+<!ELEMENT  table   - - ((title?,tgroup,ftnote*)|graphic+) -(table)>
+<!ATTLIST  table
+  frame    (top|bottom|topbot|all
+           |sides|none) #IMPLIED
+  colsep   %yesorno;    #IMPLIED
+  rowsep   %yesorno;    #IMPLIED
+  orient   (port|land)  #IMPLIED
+  pgwide   %yesorno;    #IMPLIED
+  id       ID           #IMPLIED                                  >
+<!ELEMENT  tgroup   - o (colspec*,spanspec*,thead?,tfoot?,tbody)  >
+<!ATTLIST  tgroup
+  cols     NUMBER       #REQUIRED
+  colsep   %yesorno;    #IMPLIED
+  rowsep   %yesorno;    #IMPLIED
+  align    (left|right|center|justify|char) 'left'
+  charoff  NUTOKEN      '50'
+  char     CDATA        ''                                        >
+<!ELEMENT  colspec   - o  EMPTY                                   >
+<!ATTLIST  colspec
+  colnum   NUMBER       #IMPLIED
+  colname  NMTOKEN      #IMPLIED
+  align    (left|right|center|justify|char) #IMPLIED
+  charoff  NUTOKEN      #IMPLIED
+  char     CDATA        #IMPLIED
+  colwidth CDATA        #IMPLIED
+  colsep   %yesorno;    #IMPLIED
+  rowsep   %yesorno;    #IMPLIED                                  >
+<!ELEMENT  spanspec  - o  EMPTY                                   >
+<!ATTLIST  spanspec
+  namest   NMTOKEN      #REQUIRED
+  nameend  NMTOKEN      #REQUIRED
+  spanname NMTOKEN      #IMPLIED
+  align    (left|right|center|justify|char) 'center'
+  charoff  NUTOKEN      #IMPLIED
+  char     CDATA        #IMPLIED
+  colsep   %yesorno;    #IMPLIED
+  rowsep   %yesorno;    #IMPLIED                                  >
+<!ELEMENT  (thead|tfoot)  - o  (colspec*,row+)                    >
+<!ELEMENT  tbody          - o  (row+)                             >
+<!ATTLIST  thead
+  valign   (top|middle|bottom) 'bottom'                           >
+<!ATTLIST  (tfoot|tbody)
+  valign  (top|middle|bottom) 'top'                               >
+<!ELEMENT  row       - o  (entry+)                                >
+<!ATTLIST  row
+  rowsep   %yesorno;    #IMPLIED                                  >
+<!ELEMENT  entry  - o  (%text;|%w.c;|graphic)*                    >
+<!ATTLIST  entry
+  colname  NMTOKEN      #IMPLIED
+  namest   NMTOKEN      #IMPLIED
+  nameend  NMTOKEN      #IMPLIED
+  spanname NMTOKEN      #IMPLIED
+  morerows NUMBER       '0'
+  colsep   %yesorno;    #IMPLIED
+  rowsep   %yesorno;    #IMPLIED
+  rotate   %yesorno;    '0'
+  valign  (top|middle|bottom)  'top'
+  align   (left|right|center|justify|char) #IMPLIED
+  charoff  NUTOKEN      #IMPLIED
+  char     CDATA        #IMPLIED                                  >
+<!ELEMENT  ftnote   - - %text;                                    >
+<!ATTLIST  ftnote
+  ftnoteid ID           #REQUIRED                                 >
+
+<!-- ========================================================== -->
+<!--     GRAPHIC REFERENCING MECHANISM                          -->
+<!-- ========================================================== -->
+<!ELEMENT  grphcref - - (effect?, #PCDATA)                        >
+<!ATTLIST  grphcref
+  refid    IDREF        #IMPLIED
+  sheetnbr CDATA        #IMPLIED
+  objid    CDATA        #IMPLIED
+  shownow  %yesorno     '0'                                       >
+<!ELEMENT  graphic - - ((effect,chgdesc*,title?,sheet+)|%deleted;)>
+<!ATTLIST  graphic
+  chapnbr      NUMBER   #IMPLIED
+  sectnbr      NUMBER   #IMPLIED
+  subjnbr      NUMBER   #IMPLIED
+  func         CDATA    '   '
+  seq          NUMBER   0
+  confltr      CDATA    ' '
+  varnbr       NUMBER   0
+  alunqi       CDATA    '   '
+  pgblknbr     NUMBER   #IMPLIED
+  %revatt;                                                        >
+<!ELEMENT  sheet   - - ((effect,chgdesc*,title?,gdesc?)|%deleted;)>
+<!ATTLIST  sheet
+  gnbr     ENTITY       #REQUIRED
+  sheetnbr CDATA        #REQUIRED
+  %revatt;                                                        >
+<!ELEMENT  gdesc    - - (unlist|numlist)                          >
+
+<!-- ========================================================== -->
+<!--     NUMBERED & UN-NUMBERED LIST                            -->
+<!-- ========================================================== -->
+<!ELEMENT  unlist   - - (unlitem+)                                >
+<!ATTLIST  unlist
+  bulltype CDATA        #IMPLIED                                  >
+<!ELEMENT  unlitem  - - (para+)                                   >
+<!ELEMENT  numlist  - - (numlitem+)                               >
+<!ATTLIST  numlist
+  numtype  CDATA        #IMPLIED                                  >
+<!ELEMENT  numlitem - - (para+)                                   >
+
+<!-- ========================================================== -->
+<!--     PARAGRAPH                                              -->
+<!-- ========================================================== -->
+<!ELEMENT  para     - -
+                    (#PCDATA|cb|con|csn|equ|grphcref|ein|ncon|pan|
+                     refext|refint|std|ted|toc|txtgrphc|zone)+    >
+
+<!-- ========================================================== -->
+<!--     PARAGRAPH CONTENTS                                     -->
+<!-- ========================================================== -->
+<!ELEMENT  cb       - - (#PCDATA)                                 >
+<!ELEMENT  con      - - (connbr, conname?)                        >
+<!ELEMENT  connbr   - - (#PCDATA)                                 >
+<!ELEMENT  conname  - - (#PCDATA)                                 >
+<!ELEMENT  csn      - - (#PCDATA)                                 >
+<!ELEMENT  ein      - - (#PCDATA)                                 >
+<!ELEMENT  equ      - - (#PCDATA)                                 >
+<!ELEMENT  ncon     - - (#PCDATA)                                 >
+<!ELEMENT  pan      - - (#PCDATA)                                 >
+<!ELEMENT  refext   - - (#PCDATA)                                 >
+<!ATTLIST  refext
+  refman   CDATA        #IMPLIED
+  refspl   CDATA        #IMPLIED
+  refmodel CDATA        #IMPLIED
+  refloc   CDATA        #IMPLIED                                  >
+<!ELEMENT  refint   - - (#PCDATA)                                 >
+<!ATTLIST  refint
+  reftype  CDATA        #IMPLIED
+  refloc   IDREF        #IMPLIED                                  >
+<!ELEMENT  std      - - (stdnbr,stdname)                          >
+<!ELEMENT  stdnbr   - - (#PCDATA)                                 >
+<!ELEMENT  stdname  - - (#PCDATA)                                 >
+<!ELEMENT  ted      - - (toolnbr,toolname)                        >
+<!ELEMENT  toolnbr  - - (#PCDATA)                                 >
+<!ELEMENT  toolname - - (#PCDATA)                                 >
+<!ELEMENT  toc      - - (#PCDATA)                                 >
+<!ATTLIST  toc
+  readable %yesorno;    '1'                                       >
+<!ELEMENT  txtgrphc - - (txtline+)                                >
+<!ELEMENT  txtline  - - (#PCDATA)                                 >
+<!ELEMENT  zone     - - (#PCDATA)                                 >
+
+<!-- ========================================================== -->
+<!--     TITLE etc                                              -->
+<!-- ========================================================== -->
+<!ELEMENT  title    - - (#PCDATA | ein | sbnbr)+                  >
+<!ELEMENT  warning  - - %text;                             -(note)>
+<!ELEMENT  note     - - %text;                             -(note)>
+<!ELEMENT  caution  - - %text;                             -(note)>
+
+<!-- ========================================================== -->
+<!--     MISCELLANEOUS CONSTRUCTIONS TO:                        -->
+<!--     MARK EFFECTIVITIES AND DOCUMENT UNITS                  -->
+<!--     MARK DELETED AND REVISED ELEMENTS                      -->
+<!--     SUPPORT CROSS-REFERENCING MECHANISMS                   -->
+<!-- ========================================================== -->
+<!ELEMENT  effect   - - ((sbeff|coceff)*)                         >
+<!ELEMENT  (coceff|sbeff) - O EMPTY                               >
+<!ATTLIST  effect
+  effrg    CDATA        #IMPLIED
+  efftext  CDATA        #IMPLIED                                  >
+<!ATTLIST  sbeff
+  effrg    CDATA        #IMPLIED
+  efftext  CDATA        #IMPLIED
+  sbnbr    CDATA        #REQUIRED
+  sbcond   CDATA        #REQUIRED
+  sbrev    CDATA        #IMPLIED                                  >
+<!ATTLIST  coceff
+  effrg    CDATA        #IMPLIED
+  efftext  CDATA        #IMPLIED
+  cocnbr   CDATA        #REQUIRED                                 >
+<!ELEMENT  deleted  - O EMPTY                                     >
+<!ELEMENT  isempty  - O EMPTY                                     >
+<!ELEMENT  (revst|revend|cocst|cocend)
+                    - O EMPTY                                     >
+<!ELEMENT  chgdesc  - - (#PCDATA)                                 >
+<!ELEMENT  hotlink  - O EMPTY                                     >
+<!ATTLIST  hotlink
+  targetid CDATA        #IMPLIED
+  targetrefid CDATA     #IMPLIED                                  >
+<!ELEMENT  docunit  - O EMPTY                                     >
+<!ATTLIST  docunit
+  docunbr  CDATA        #IMPLIED                                  >

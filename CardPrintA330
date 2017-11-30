@@ -1,0 +1,274 @@
+#!/bin/bash
+# Program is for printing the Airbus Card with modified headers 
+# User should be ready with a txt list of the cards to be printe
+
+#cleanup
+if [ ! -d "./temp" ];
+then
+   echo "Making Temp folder"
+   mkdir temp
+fi
+rm ./temp/*.rtf 2> /dev/null
+rm ./temp/*.pdf 2> /dev/null
+rm ./temp/*.sgm 2> /dev/null
+rm ./temp/printerror.txt 2> /dev/null
+
+# Variables
+actype="A330"
+# remember to change the paths below
+pathtoOutput="../Output/"
+TailNumber=""
+WODate=""
+Station=""
+WONumber=""
+#not used yet
+yesno='n'
+
+# Ask user to input Variables
+while [[ $yesno != "y" && $yesno != "Y" ]]; do 
+actype=""
+echo -e ""
+echo -e "A330 Airbus Task Card Printer!"
+
+
+#while  ! [[ "$actype" =~ ^(A320|A330|A340)$ ]]; do
+#        echo -e "Enter the Aircraft Type: (A320, A330, A340)"
+#        read -e result
+#	if [ "$result" != "" ]
+#	   then
+#	   actype=$result
+#	   fi 
+#	if ! [[ "$actype" =~ ^(A320|A330|A340)$ ]]; then
+#	echo "Invalid Aircraft Type"	
+#	fi
+#done
+
+echo -e "Enter the Tail Number:"
+read -e result
+	if [ "$result" != "" ]
+	then
+	TailNumber=$result
+	fi 
+
+echo -e "Enter the Work Order Date:"
+read -e result
+	if [ "$result" != "" ]
+	then
+	WODate=$result
+	fi
+
+echo -e "Enter the Station:"
+read -e result
+	if [ "$result" != "" ]
+	then
+	Station=$result
+	fi
+
+echo -e "Enter the Work Order Number:"
+read -e result
+	if [ "$result" != "" ]
+	then
+	WONumber=$result
+	fi
+
+
+echo -e "Enter the path/file of the the list of cards to be printed"
+read -e result
+	if [ "$result" != "" ]
+	then
+	ListOfCards=$result
+	fi
+if [ ! -f "$ListOfCards" ];
+then
+   echo "Not a File"
+   exit
+fi
+
+echo -e "Enter the path to Output"
+echo -e "Period ' . ' for current directory"
+read -e result
+	if [ "$result" != "" ]
+	then
+	pathtoOutput=$result
+	fi
+if [ ! -d "$pathtoOutput" ];
+then
+   echo "Invalid Directory"
+   exit
+fi
+
+echo -e ""
+echo -e ""
+echo -e "* DATA TO BE PRINTED ON CARD *"
+echo -e "Are you sure of the following:"
+echo -e "Aicraft Type: $actype"
+echo -e "Tail Number : $TailNumber"
+echo -e "Work Order Date : $WODate"
+echo -e "Station : $Station"
+echo -e "Work Order Number: $WONumber"
+echo -e "List File : $ListOfCards"
+echo -e "Output Folder . for here: $pathtoOutput"
+echo -e ""
+	
+   read -p "Does this look right? (y?/n?)" yesno
+
+done # user input of variables
+
+# Redo Variables
+pathtoFinalCards="/home/mpla/Documents/SPLITpdf/AIRBUS CARDS/A330/A330 FINAL CARDS"
+pathtoGraphRef="/home/mpla/Documents/AirbusCardCreator/CGMFiles/A330"
+pathtoPDFAttach="/home/mpla/Documents/AirbusCardCreator/CGMFiles/PDFATTACH"
+StampFile="/home/mpla/Documents/AirbusCardCreator/CGMFiles/STAMP/A330STAMP.pdf"
+SysFiles="/home/mpla/Documents/AirbusCardPrint"
+
+# Start Card Making
+# Copy Cards to temp
+cat $ListOfCards | xargs -I# cp "$pathtoFinalCards/#" "./temp/"
+
+#Modify Headers
+cat $ListOfCards | while read filename; do
+cat  ./temp/$filename | sed "s/WODATE=\"\"/WODATE=\"${WODate}\"/" | sed "s/TAIL=\"\"/TAIL=\"${TailNumber}\"/" | sed "s/STATION=\"\"/STATION=\"${Station}\"/" | sed "s/WO=\"\"/WO=\"${WONumber}\"/"  > ./temp/t$filename
+rm ./temp/$filename
+mv ./temp/t$filename ./temp/$filename
+done
+
+#Print to RTF
+echo "Printing to RTF"
+
+cat $ListOfCards | while read filename; do
+# Openjade Program Call
+filenamertf=`echo $filename | sed 's/.sgm/.rtf/'`
+
+openjade -t rtf -c "$SysFiles/catalog" -d "$SysFiles/CARD.dsl" -o ./temp/$filenamertf ./temp/$filename &> openjade.log
+
+# Change footer of rtf file
+
+cat ./temp/$filenamertf | sed "s/footery0/footery720/g" > ./temp/t$filenamertf
+rm ./temp/$filenamertf 
+mv ./temp/t$filenamertf ./temp/$filenamertf
+
+done
+
+#Print to PDF
+
+cat $ListOfCards | while read filename; do
+filenamertf=`echo $filename | sed 's/.sgm/.rtf/'`
+filenamepdf=`echo $filename | sed 's/.sgm/.pdf/'`
+
+#libreoffice --pt PDF ./temp/$filenamertf &
+ooffice -p ./temp/$filenamertf
+# wait for process to finish
+pids="$pids $!"
+echo "Printing $filenamepdf to PDF"
+wait $pids
+pids=""
+while [ ! -f "$HOME/PDF/$filenamepdf" ] ; do
+	sleep 0.5
+done
+
+sleep 2
+mv "$HOME/PDF/$filenamepdf" ./temp/
+
+pdftk ./temp/$filenamepdf stamp "$StampFile" output ./temp/t$filenamepdf &
+pids="$pids $!"
+wait $pids
+pids=""
+while [ ! -f "./temp/t$filenamepdf" ] ; do
+	sleep 0.5
+done
+
+sleep 2
+rm ./temp/$filenamepdf
+mv ./temp/t$filenamepdf ./temp/$filenamepdf
+
+
+# Attach Graphic References 
+
+grep "<GRAPHIC " ./temp/$filename  | sed "s/<GRAPHIC /\n<GRAPHIC /g" | sort -u > graphlist.txt
+grep -Po "GNBR=\".*?\"" graphlist.txt | sed "s/GNBR=\"//g" | sed "s/\"//" | sort -u > graphlistbare.txt
+rm graphlist.txt
+
+cat graphlistbare.txt | while read graphicref; do
+
+if [ -f "$pathtoGraphRef/$graphicref.pdf" ] 
+	then
+
+	pdftk ./temp/$filenamepdf $pathtoGraphRef/$graphicref.pdf cat output ./temp/2$filenamepdf &
+pids="$pids $!"
+	wait $pids
+	pids=""
+	while [ ! -f "./temp/2$filenamepdf" ] ; do
+		sleep 0.5
+	done
+
+	sleep 2
+	rm ./temp/$filenamepdf
+	mv ./temp/2$filenamepdf ./temp/$filenamepdf
+
+
+else 
+	echo -e "Error $filename: Graphic File $graphicref not found"
+	echo "$filenamepdf" >> ./temp/printerror.txt
+fi 
+
+done
+rm graphlistbare.txt 2> /dev/null
+
+
+# Attach pdf attach
+grep "<PDFATTACH>" ./temp/$filename  | sed "s#<PDFATTACH>#\n<PDFATTACH>#g" | sed "s#</PDFATTACH>#</PDFATTACH>\n#g" | sort -u > pdfattlist.txt
+grep "^<PDFATTACH>" pdfattlist.txt  | sed "s#<PDFATTACH>##g" | sed "s#</PDFATTACH>##g" | sort -u > pdfattlistt.txt
+rm pdfattlist.txt
+
+cat pdfattlistt.txt | while read pdfattref; do
+
+if [ -f "$pathtoPDFAttach/$pdfattref" ] 
+	then
+
+	pdftk ./temp/$filenamepdf $pathtoPDFAttach/$pdfattref cat output ./temp/2$filenamepdf &
+pids="$pids $!"
+	wait $pids
+	pids=""
+	while [ ! -f "./temp/2$filenamepdf" ] ; do
+		sleep 0.5
+	done
+
+	sleep 2
+	rm ./temp/$filenamepdf
+	mv ./temp/2$filenamepdf ./temp/$filenamepdf
+
+
+else 
+	echo -e "Error $filename: PDF Attach $pdfattref not found"
+	echo "$filenamepdf" >> ./temp/printerror.txt
+fi 
+	
+done
+rm pdfattlistt.txt 2> /dev/null
+mv ./temp/$filenamepdf $pathtoOutput
+#------------------------------------
+
+done   # Printing Card in List
+
+
+# remove all cards under print error
+if [ -f ./temp/printerror.txt ] 
+	then
+		cat ./temp/printerror.txt | sort -u > ./temp/printerrorr.txt
+		rm ./temp/printerror.txt
+		echo -e "Printed Cards with Error:"
+		cat ./temp/printerrorr.txt
+		cat ./temp/printerrorr.txt | while read errorprint; do
+		rm ./temp/$errorprint
+		done
+		# rm ./temp/printerrorr.txt # either remove the print error list or make a copy to the output path 
+		mv ./temp/printerrorr.txt $pathtoOutput
+	else
+		echo -e "All Cards Printed Successfully!"
+	fi
+
+
+rm ./temp/*.sgm
+rm ./temp/*.rtf
+rm openjade.log
+rmdir ./temp

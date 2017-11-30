@@ -1,0 +1,43 @@
+openjade:CARD.dsl:1:E: invalid default SGML declaration
+openjade:CARD.dsl:1:E: invalid default SGML declaration
+openjade:./temp/A320-533005-01-2-01.sgm:4:0:E: cannot find "AMM.SGE"; tried "./temp/AMM.SGE", "/usr/local/share/sgml/AMM.SGE", "/usr/share/sgml/AMM.SGE"
+openjade:./temp/A320-533005-01-2-01.sgm:17:15:E: document type does not allow element "SAMPLETHRSHOLD" here
+openjade:./temp/A320-533005-01-2-01.sgm:17:16:E: start tag for "THRSHTYP" omitted, but its declaration does not permit this
+openjade:./temp/A320-533005-01-2-01.sgm:17:34:E: end tag for "THRSHTYP" omitted, but its declaration does not permit this
+openjade:./temp/A320-533005-01-2-01.sgm:17:16: start tag was here
+openjade:./temp/A320-533005-01-2-01.sgm:17:34:E: end tag for "SAMPLETHRSHOLD" which is not finished
+openjade:./temp/A320-533005-01-2-01.sgm:18:13:E: document type does not allow element "SAMPLEREPEAT" here
+openjade:./temp/A320-533005-01-2-01.sgm:18:14:E: start tag for "THRSHTYP" omitted, but its declaration does not permit this
+openjade:./temp/A320-533005-01-2-01.sgm:18:30:E: end tag for "THRSHTYP" omitted, but its declaration does not permit this
+openjade:./temp/A320-533005-01-2-01.sgm:18:14: start tag was here
+openjade:./temp/A320-533005-01-2-01.sgm:18:30:E: end tag for "SAMPLEREPEAT" which is not finished
+openjade:./temp/A320-533005-01-2-01.sgm:19:16:E: end tag for "SAMPLEINTERVAL" which is not finished
+openjade:./temp/A320-533005-01-2-01.sgm:21:9:E: document type does not allow element "THRSHOLD" here
+openjade:./temp/A320-533005-01-2-01.sgm:21:10:E: start tag for "THRSHTYP" omitted, but its declaration does not permit this
+openjade:./temp/A320-533005-01-2-01.sgm:21:28:E: end tag for "THRSHTYP" omitted, but its declaration does not permit this
+openjade:./temp/A320-533005-01-2-01.sgm:21:10: start tag was here
+openjade:./temp/A320-533005-01-2-01.sgm:21:28:E: end tag for "THRSHOLD" which is not finished
+openjade:./temp/A320-533005-01-2-01.sgm:22:7:E: document type does not allow element "REPEAT" here
+openjade:./temp/A320-533005-01-2-01.sgm:22:8:E: start tag for "THRSHTYP" omitted, but its declaration does not permit this
+openjade:./temp/A320-533005-01-2-01.sgm:22:23:E: end tag for "THRSHTYP" omitted, but its declaration does not permit this
+openjade:./temp/A320-533005-01-2-01.sgm:22:8: start tag was here
+openjade:./temp/A320-533005-01-2-01.sgm:22:23:E: end tag for "REPEAT" which is not finished
+openjade:./temp/A320-533005-01-2-01.sgm:23:10:E: end tag for "INTERVAL" which is not finished
+openjade:./temp/A320-533005-01-2-01.sgm:30:7:E: element "APPLIC" undefined
+openjade:./temp/A320-533005-01-2-01.sgm:43:2513:E: there is no attribute "REFLOC"
+openjade:./temp/A320-533005-01-2-01.sgm:43:4267:E: required attribute "PGBLKNBR" not specified
+openjade:./temp/A320-533005-01-2-01.sgm:45:125:E: required attribute "PGBLKNBR" not specified
+openjade:./temp/A320-533005-01-2-01.sgm:47:166:E: required attribute "PGBLKNBR" not specified
+openjade:./temp/A320-533005-01-2-01.sgm:49:165:E: required attribute "PGBLKNBR" not specified
+openjade:./temp/A320-533005-01-2-01.sgm:51:125:E: required attribute "PGBLKNBR" not specified
+openjade:./temp/A320-533005-01-2-01.sgm:43:3921:X: reference to non-existent ID "EN53310099104900001"
+openjade:./temp/A320-533005-01-2-01.sgm:47:273:X: reference to non-existent ID "EN53310099104900001"
+openjade:CARD.dsl:932:2:E: flow object not accepted in a paragraph; only inline, display or paragraph-break flow objects accepted
+openjade:CARD.dsl:932:2:E: flow object not accepted in a paragraph; only inline, display or paragraph-break flow objects accepted
+openjade:CARD.dsl:932:2:E: flow object not accepted in a paragraph; only inline, display or paragraph-break flow objects accepted
+openjade:CARD.dsl:932:2:E: flow object not accepted in a paragraph; only inline, display or paragraph-break flow objects accepted
+openjade:CARD.dsl:932:2:E: flow object not accepted in a paragraph; only inline, display or paragraph-break flow objects accepted
+openjade:CARD.dsl:932:2:E: flow object not accepted in a paragraph; only inline, display or paragraph-break flow objects accepted
+openjade:CARD.dsl:932:2:E: flow object not accepted in a paragraph; only inline, display or paragraph-break flow objects accepted
+openjade:./temp/A320-533005-01-2-01.sgm:45:321:E: node matches more than one pattern with the same specificity
+openjade:./temp/A320-533005-01-2-01.sgm:45:440:E: node matches more than one pattern with the same specificity
