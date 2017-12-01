@@ -12,6 +12,8 @@
 - libreoffice --pt PDF
 - openjade, openjade1.3
 - pdftk
+- barcode
+- ps2pdf
 - Task_Card_App System Files
 	AMM.CFE
 	AMM.DTD

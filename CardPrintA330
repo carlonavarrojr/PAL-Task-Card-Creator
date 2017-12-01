@@ -26,7 +26,7 @@ yesno='n'
 
 # Ask user to input Variables
 while [[ $yesno != "y" && $yesno != "Y" ]]; do 
-actype=""
+actype="A330"
 echo -e ""
 echo -e "A330 Airbus Task Card Printer!"
 
@@ -114,19 +114,41 @@ echo -e ""
 
 done # user input of variables
 
-# Redo Variables
+# PAL Variables
 pathtoFinalCards="/home/mpla/Documents/SPLITpdf/AIRBUS CARDS/A330/A330 FINAL CARDS"
 pathtoGraphRef="/home/mpla/Documents/AirbusCardCreator/CGMFiles/A330"
 pathtoPDFAttach="/home/mpla/Documents/AirbusCardCreator/CGMFiles/PDFATTACH"
 StampFile="/home/mpla/Documents/AirbusCardCreator/CGMFiles/STAMP/A330STAMP.pdf"
 SysFiles="/home/mpla/Documents/AirbusCardPrint"
 
+# Carlo Variables
+#pathtoFinalCards="/media/carlo/DATA/AircraftEngineering/MTC/A330/A330 FINAL CARDS"
+#pathtoGraphRef="/media/carlo/DATA/AircraftEngineering/MTC/GRAPHREF"
+#pathtoPDFAttach="/media/carlo/DATA/AircraftEngineering/MTC/PDFATTACH"
+#StampFile="/media/carlo/DATA/AircraftEngineering/MTC/STAMP/A320STAMP.pdf"
+#SysFiles="/media/carlo/DATA/AircraftEngineering/PAL Task Card Creation"
+
+cp $ListOfCards ./temp/templist.txt
+
+# Check all cards available at list
+cat ./temp/templist.txt | while read filename; do
+     if [ ! -f "$pathtoFinalCards/$filename" ]
+	then
+	echo "$filename - No Final Card" >> ./temp/printerror.txt 
+	grep -v "$filename" ./temp/templist.txt > ./temp/templist2.txt
+	rm ./temp/templist.txt
+	mv ./temp/templist2.txt ./temp/templist.txt
+     fi
+done
+
+
 # Start Card Making
 # Copy Cards to temp
-cat $ListOfCards | xargs -I# cp "$pathtoFinalCards/#" "./temp/"
+cat ./temp/templist.txt | xargs -I# cp "$pathtoFinalCards/#" "./temp/"
+
 
 #Modify Headers
-cat $ListOfCards | while read filename; do
+cat ./temp/templist.txt | while read filename; do
 cat  ./temp/$filename | sed "s/WODATE=\"\"/WODATE=\"${WODate}\"/" | sed "s/TAIL=\"\"/TAIL=\"${TailNumber}\"/" | sed "s/STATION=\"\"/STATION=\"${Station}\"/" | sed "s/WO=\"\"/WO=\"${WONumber}\"/"  > ./temp/t$filename
 rm ./temp/$filename
 mv ./temp/t$filename ./temp/$filename
@@ -135,9 +157,10 @@ done
 #Print to RTF
 echo "Printing to RTF"
 
-cat $ListOfCards | while read filename; do
+cat ./temp/templist.txt | while read filename; do
 # Openjade Program Call
 filenamertf=`echo $filename | sed 's/.sgm/.rtf/'`
+
 
 openjade -t rtf -c "$SysFiles/catalog" -d "$SysFiles/CARD.dsl" -o ./temp/$filenamertf ./temp/$filename &> openjade.log
 
@@ -151,7 +174,7 @@ done
 
 #Print to PDF
 
-cat $ListOfCards | while read filename; do
+cat ./temp/templist.txt | while read filename; do
 filenamertf=`echo $filename | sed 's/.sgm/.rtf/'`
 filenamepdf=`echo $filename | sed 's/.sgm/.pdf/'`
 
@@ -208,7 +231,7 @@ pids="$pids $!"
 
 else 
 	echo -e "Error $filename: Graphic File $graphicref not found"
-	echo "$filenamepdf" >> ./temp/printerror.txt
+	echo "$filenamepdf - Graphic File" >> ./temp/printerror.txt
 fi 
 
 done
@@ -240,11 +263,28 @@ pids="$pids $!"
 
 else 
 	echo -e "Error $filename: PDF Attach $pdfattref not found"
-	echo "$filenamepdf" >> ./temp/printerror.txt
+	echo "$filenamepdf - PDF Attach" >> ./temp/printerror.txt
 fi 
 	
 done
 rm pdfattlistt.txt 2> /dev/null
+
+#put barcode
+cardno=`echo $filename | sed 's/.sgm//'`
+barcode -b "$cardno" -o ./temp/barcode.ps -u cm -g 8x0.7+2+0
+ps2pdf ./temp/barcode.ps ./temp/barcode.pdf
+pdftk ./temp/$filenamepdf stamp ./temp/barcode.pdf output ./temp/2$filenamepdf
+	wait $pids
+	pids=""
+	while [ ! -f "./temp/2$filenamepdf" ] ; do
+		sleep 0.5
+	done
+
+rm ./temp/$filenamepdf
+mv ./temp/2$filenamepdf ./temp/$filenamepdf
+rm ./temp/barcode.ps
+rm ./temp/barcode.pdf
+
 mv ./temp/$filenamepdf $pathtoOutput
 #------------------------------------
 
@@ -256,11 +296,10 @@ if [ -f ./temp/printerror.txt ]
 	then
 		cat ./temp/printerror.txt | sort -u > ./temp/printerrorr.txt
 		rm ./temp/printerror.txt
+		echo ""
 		echo -e "Printed Cards with Error:"
 		cat ./temp/printerrorr.txt
-		cat ./temp/printerrorr.txt | while read errorprint; do
-		rm ./temp/$errorprint
-		done
+
 		# rm ./temp/printerrorr.txt # either remove the print error list or make a copy to the output path 
 		mv ./temp/printerrorr.txt $pathtoOutput
 	else
@@ -271,4 +310,6 @@ if [ -f ./temp/printerror.txt ]
 rm ./temp/*.sgm
 rm ./temp/*.rtf
 rm openjade.log
+rm ./temp/templist.txt
 rmdir ./temp
+
