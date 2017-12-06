@@ -1,15 +1,19 @@
 #!/bin/bash
 
 card=$1
-message=$2
+rev=$2
+status=$3
+message=$4
 editor=`whoami`
+
+
 
 
 #what is $result?
 
 
 #insert into Database ACCMTCLog reason for revision
-SQLUSER="mpla" 
+SQLUSER="carlo" 
 SQLPASS="mpla" #or is it mplapassword? 
 SQLHOST="127.0.0.1" 
 SQLDATE=`date +%Y-%m-%d`
@@ -17,7 +21,7 @@ SQLDATE=${SQLDATE}" "
 SQLDATE=${SQLDATE}`date +%H:%M:%S`
 SQLDB="MTC" 
 SQLTBL="ACCMTCLog" 
-#echo "INSERT INTO ACCMTCLog VALUES (NULL,'${SQLDATE}','${card}','$result','DRAFT','$editor','$message');" | mysql -u$SQLUSER -p$SQLPASS -h$SQLHOST $SQLDB;
+echo "INSERT INTO ACCMTCLog VALUES (NULL,'${SQLDATE}','${card}','$rev','$status','$editor','$message');" | mysql -u$SQLUSER -p$SQLPASS -h$SQLHOST $SQLDB;
 		
 #				echo "`date +%Y-%m-%d` `date +%H:%M:%S`,${card},$result,DRAFT,$username,$Reason (sent to $username)" >> System/log.csv
 echo "$card change logged - \"$message\" by $editor"

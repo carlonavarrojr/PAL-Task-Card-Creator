@@ -33,7 +33,7 @@ ACTIV)
 			fi
 			message=`echo "Created $card DRAFT Rev:$revnew $now"`
 			#log new created draft card!
-			CardLog "$card" "$message"
+			CardLog "$card" "$revnum" "DRAFT" "$message"
 			;;
 		REJECT) 	echo "Cannot Reject Active Card" ;	exit ;;
 		APPROVE)  	echo "Cannot Approve Active Card" ; 	exit ;;
@@ -49,7 +49,7 @@ PENDG)
 			rm  "$pathtoFinalCards/$card"
 			message=`echo "Rejected $card PENDING Rev:$revnum to DRAFT Rev:$revnum $now"`
 			# log rejected pending!
-			CardLog "$card" "$message"
+			CardLog "$card" "$revnum" "PENDG" "$message"
 			;;
 		APPROVE) 	
 			cat "$pathtoFinalCards/$card" | sed "s#STATUS=\"PENDG\"#STATUS=\"ACTIV\"#" | sed "s#CARDREVDATE=\"...........\"#CARDREVDATE=\"$now\"#" >  "$pathtoFinalCards/${cardno}.sgm"
@@ -57,7 +57,7 @@ PENDG)
 			message=`echo "Approved $card PENDING Rev:$revnum to ACTIVE Rev:$revnew $now"`
 			# delete old card to DELETED
 			# log approved pending!
-			CardLog "$card" "$message"
+			CardLog "$card" "$revnew" "ACTIV" "$message"
 			;;
 		VIEW) 	 	echo "on progress" ; 	exit ;;
 		EDIT) 	 	echo "Cannot Edit Pending Card" ; 	exit ;;
@@ -72,14 +72,14 @@ DRAFT)
 			message=`echo "Deleted $card Rev:$revnum from Deck"`
 			# delete old card to DELETED	
 			# log deleted draft!
-			CardLog "$card" "$message"
+			CardLog "$card" "$revnum" "DRAFT" "$message"
 			;;
 		APPROVE)
 			cat "$pathtoFinalCards/$card" | sed "s#STATUS=\"DRAFT\"#STATUS=\"PENDG\"#" | sed "s#CARDREVDATE=\"...........\"#CARDREVDATE=\"$now\"#" >  "$pathtoFinalCards/${cardno}_P.sgm"
  			rm  "$pathtoFinalCards/$card"	
 			message=`echo "Approved $card Rev:$revnew $now DRAFT to PENDING"`
 			# log approved pending!
-			CardLog "$card" "$message"
+			CardLog "$card" "$revnew" "PENDG" "$message"
 			;;
 		VIEW) 	 	echo "Cannot Approve Active Card" ; 	exit ;;
 		EDIT) 	 	gedit --new-window "$pathtoFinalCards/$card" ;  	exit ;;
