@@ -100,7 +100,7 @@ MS <- mutate(MS,TC = paste("<!DOCTYPE taskcard PUBLIC \"-//PAL-AED//DTD TASKCARD
 #write.table(x[1,27],"x.sgm",col.names = FALSE, row.names = FALSE,quote = FALSE)
 
 for (a in 1:dim(MS)[[1]])
-        write.table(MS[a,"TC"],paste(pathtoOutput,MS[a,"CardNo"],".sgm",sep = ""),col.names = FALSE, row.names = FALSE,quote = FALSE)
+        write.table(MS[a,"TC"],file=paste(pathtoOutput,"/",MS[a,"CardNo"],".sgm",sep = ""),col.names = FALSE, row.names = FALSE,quote = FALSE)
 
 
 #write the data for the card
