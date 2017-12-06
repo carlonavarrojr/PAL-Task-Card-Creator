@@ -1,0 +1,393 @@
+#!/bin/bash
+
+# Different function calls
+
+# Variables
+
+source CardVariables
+
+
+# Initialize Displays
+echo "" > ed_screen.txt
+echo "" > se_screen.txt
+echo "" > List.txt
+
+# GtkDialog Window
+GTKDIALOG=gtkdialog
+export MAIN_DIALOG='
+<window title="PAL Task Card Management" icon-name="gtk-about" resizable="true" width-request="300" >
+ 
+<notebook tab-labels="Search | Print | Edit | AMM Rev | Vars">
+
+<vbox> 
+		<hbox>
+		   <text><label>Aircraft Type:</label></text>
+		   <combobox>	
+			<variable>se_actype</variable> 
+			<item>A320</item> 
+			<item>A330</item> 
+			<item>A340</item> 
+		   </combobox> 
+		</hbox>
+
+		<hbox>
+
+	      <entry><variable>se_cardno</variable>
+		<input>echo $se_screen</input>
+		<action>refresh:se_carddetails</action>
+		</entry>
+
+			<button><label>Add</label>
+
+			<action>echo "$se_cardno" >> List.txt</action>
+			<action>cat List.txt | sed "/^ *$/d" | sort -u > nList.txt</action>
+			<action>rm List.txt</action>
+			<action>mv nList.txt List.txt</action>
+			<action>clear:se_list</action>
+			<action>refresh:se_list</action>
+	        	</button>			
+			<button><label>Clear</label>
+			<action>echo "" > List.txt</action>
+			<action>clear:se_list</action>
+			<action>refresh:se_list</action>
+	        	</button>			
+		
+		</hbox>
+
+		<hbox>
+
+	      <entry><variable>se_carddetails</variable>
+		<default>""</default>
+		<input>if [ ! -z "$se_cardno" ] ; then echo "cat \"$se_pathtoFinalCards/$se_cardno\"" | sed "s#@#${se_actype}#g" | bash | grep -e ^\<TASKCARD | tail -c 51 | sed "s#REVDATE=\"##" | sed "s#REVNUM=\"#Rev:#" | sed "s#STATUS=\"##" | sed "s#\"#;#g" | sed "s#># #" ; else echo "" ; fi</input>
+		</entry>
+		</hbox>
+
+	<frame Search>
+		<hbox>
+		      <text><label>Search:</label></text>
+		      <entry><variable>se_search</variable>
+			</entry>
+		<button><label>Search</label>
+		<variable>se_search_button</variable>
+		<action>clear:se_screen</action>
+		<action>echo \"$se_pathtoFinalCards\" -maxdepth 1 -type f -name \"*$se_search*\" | sed "s#@#${ed_actype}#g" | xargs find | sed "s#.*/##g" | sort -u > se_screen.txt </action>
+		<action>refresh:se_screen</action>
+        	</button>
+		</hbox>
+
+		<hbox>
+			<list>
+				<variable>se_screen</variable>
+				<height>125</height>
+				<input file>se_screen.txt</input>
+				<action>refresh:se_cardno</action>
+			</list>
+		</hbox>
+	</frame>
+
+	<frame List.txt> 
+		<hbox>
+			<list>
+				<variable>se_list</variable>
+				<height>125</height>
+				<input file>List.txt</input>
+				<action>refresh:se_cardno</action>
+			</list>
+		</hbox>
+
+	</frame>
+
+	<frame>
+		<hbox>
+		<button>
+		<input file icon="exit"></input>
+		<action>rm List.txt</action>
+		<action>rm se_screen.txt</action>
+		<action>rm ed_screen.txt</action>
+		<action>rm view.rtf</action>
+		<action type="exit">Quit</action>
+        	</button>
+		</hbox>
+	</frame>
+
+</vbox>
+
+
+
+
+<vbox> 
+	<hbox>
+	   <text><label>Aircraft Type:</label></text>
+	   <combobox>	
+		<variable>pr_actype</variable> 
+		<item>A320</item> 
+		<item>A330</item> 
+		<item>A340</item> 
+	   </combobox> 
+	</hbox>
+	<frame Card Details> 
+	     <hbox>
+	      <text><label>Tail Number:</label></text>
+	      <entry><variable>pr_tailnumber</variable></entry>
+	    </hbox>
+    	    <hbox>
+      		<text><label>Date:</label></text>
+      		<entry><variable>pr_date</variable></entry>
+    	    </hbox>
+    	    <hbox>
+      		<text><label>Work Order Number:</label></text>
+      		<entry><variable>pr_wonumber</variable></entry>
+    	     </hbox>
+   	     <hbox>
+      		<text><label>Station:</label></text>
+      		<entry><variable>pr_station</variable></entry>
+    	     </hbox>
+	</frame>
+	<frame Print Single Card or List File>
+     	     <hbox>
+      		<text><label>Output Path: </label></text>
+        	<entry><variable>pr_outputpath</variable><default>.</default></entry>
+     	     </hbox>
+     	     <hbox>
+        	<entry><variable>pr_cardno</variable></entry>
+		<button><label>Print Card</label>
+	     	<action>echo "$pr_cardno.sgm" > list.txt</action>
+             	<action>bash "CardPrint" "$pr_actype" "$pr_tailnumber" "$pr_date" "$pr_station" "$pr_wonumber" "$pr_outputpath" "list.txt"</action>
+	     	<action>rm list.txt</action>
+             	</button>
+     	      </hbox>
+     	      <hbox>
+        	<entry><variable>pr_cardlist</variable><default>List.txt</default></entry>
+	     </hbox>
+	     <hbox>
+		<button><label>Enter List File</label>
+  	     	<action type="fileselect">pr_cardlist</action>
+        	</button>
+		<button><label>Print List</label>
+  	     	<action>bash "CardPrint" "$pr_actype" "$pr_tailnumber" "$pr_date" "$pr_station" "$pr_wonumber"  "$pr_outputpath" "$pr_cardlist"</action>
+        	</button>
+		<button><label>Open Folder</label>
+  	     	<action>nautilus $pr_outputpath</action>
+        	</button>
+     	      </hbox>
+	</frame>
+	<frame>
+		<hbox>
+		<button>
+		<input file icon="exit"></input>
+		<action>rm List.txt</action>
+		<action>rm se_screen.txt</action>
+		<action>rm ed_screen.txt</action>
+		<action>rm view.rtf</action>
+		<action type="exit">Quit</action>
+        	</button>
+		</hbox>
+	</frame>
+
+</vbox>
+
+
+
+<vbox> 
+
+
+	  <hbox>
+	   <text><label>Aircraft Type:</label></text>
+	   <combobox>
+		<variable>ed_actype</variable> 
+		<item>A320</item> 
+		<item>A330</item> 
+		<item>A340</item> 
+	   </combobox>
+
+
+	   </hbox>
+	<frame>
+
+		<hbox>
+	      <text><label>Card:</label></text>
+	      <entry><variable>ed_cardno</variable>
+		<input>echo $ed_screen</input>
+		<action>refresh:ed_carddetails</action>
+		</entry>
+		</hbox>
+		<hbox>
+
+	      <entry><variable>ed_carddetails</variable>
+		<input>if [ ! -z "$ed_cardno" ]; then echo "cat \"$ed_pathtoFinalCards/$ed_cardno\"" | sed "s#@#${ed_actype}#g" | bash | grep -e ^\<TASKCARD | tail -c 51 | sed "s#REVDATE=\"##" | sed "s#REVNUM=\"#Rev:#" | sed "s#STATUS=\"##" | sed "s#\"#;#g" | sed "s#># #"; else echo "" ; fi</input>
+		</entry>
+		</hbox>
+
+
+
+		<hbox>
+		<button><label>View</label>
+		<action>echo "openjade -t rtf -c \"$ed_SysFiles/catalog\" -d \"$ed_SysFiles/CARD.dsl\" -o ./view.rtf \"$ed_pathtoFinalCards/$ed_cardno\" &> openjade.log" | sed "s#@#${ed_actype}#g" | bash </action>
+		<action>libreoffice --view view.rtf</action>
+        	</button>
+		<button><label>Edit</label>
+		<action>bash "CardEdit" "EDIT" "$ed_cardno"</action>
+        	</button>
+
+		<button><label>Draft</label>
+		<action>bash "CardEdit" "DRAFT" "$ed_cardno"</action>
+		<action>activate:ed_search_button</action>
+        	</button>
+		<button><label>Reject</label>
+		<action>bash "CardEdit" "REJECT" "$ed_cardno"</action>
+		<action>activate:ed_search_button</action>
+        	</button>
+		<button><label>Approve</label>
+		<action>bash "CardEdit" "APPROVE" "$ed_cardno"</action>
+		<action>activate:ed_search_button</action>
+        	</button>
+		</hbox>
+
+
+	</frame>
+	<frame>
+		<hbox>
+		      <text><label>Search:</label></text>
+		      <entry><variable>ed_search</variable>
+			</entry>
+		<button><label>Search</label>
+		<variable>ed_search_button</variable>
+		<action>clear:ed_screen</action>
+		<action>echo \"$ed_pathtoFinalCards\" -maxdepth 1 -type f -name \"*$ed_search*\" | sed "s#@#${ed_actype}#g" | xargs find | sed "s#.*/##g" | sort -u > ed_screen.txt </action>
+		<action>refresh:ed_screen</action>
+        	</button>
+		</hbox>
+
+		<hbox>
+			<list>
+				<variable>ed_screen</variable>
+				<height>200</height>
+				<input file>ed_screen.txt</input>
+				<action>refresh:ed_cardno</action>
+			</list>
+		</hbox>
+
+
+	</frame>
+	<frame>
+		<hbox>
+		<button>
+		<input file icon="exit"></input>
+		<action>rm List.txt</action>
+		<action>rm se_screen.txt</action>
+		<action>rm ed_screen.txt</action>
+		<action>rm view.rtf</action>
+		<action type="exit">Quit</action>
+        	</button>
+		</hbox>
+	</frame>
+</vbox>
+
+
+
+
+<vbox> 
+	   <combobox>	 
+		<variable>amm_actype</variable> 
+		<item>A320</item> 
+		<item>A330</item> 
+		<item>A340</item> 
+	   </combobox>
+	<frame Create New Card Deck> 
+	<hbox>
+		<entry><variable>amm_msfile</variable></entry>
+		  <button>
+		    <label>MS File</label>
+		<action type="fileselect">amm_msfile</action>
+		  </button>
+	</hbox>
+	<hbox>
+		<entry><variable>amm_sgml</variable></entry>
+		  <button>
+		    <label>AMM SGML</label>
+		<action type="fileselect">amm_sgml</action>
+		  </button>
+	</hbox>
+
+	<hbox>
+		  <button>
+		    <label>Create Deck</label>
+		<action>echo "\"$amm_msfile\" \"$amm_sgml\" \"$amm_actype\"" | xargs CreateNewCardDeck</action>
+		  </button>
+	</hbox>
+
+	</frame>
+
+
+
+</vbox>
+
+
+<vbox>
+
+	<hbox>
+		<entry auto-refresh="true">
+		<input>echo "/media/carlo/DATA/AircraftEngineering/PAL Task Card Creation"</input>
+		<variable>ed_SysFiles</variable>
+		<width>0.1</width>
+		<action function="hide">ed_pathtoFinalCards</action>
+		<visible>false</visible>
+		</entry>
+	</hbox>
+	<hbox>
+		<entry auto-refresh="true">
+		<input>echo "/media/carlo/DATA/AircraftEngineering/MTC/@/@ FINAL CARDS"</input>
+		<variable>ed_pathtoFinalCards</variable>
+		<width>0.1</width>
+		<action function="hide">ed_pathtoFinalCards</action>
+		<visible>false</visible>
+		</entry>
+
+	</hbox>
+	<hbox>
+		<entry auto-refresh="true">
+		<input>echo "/media/carlo/DATA/AircraftEngineering/MTC/@/@ FINAL CARDS"</input>
+		<variable>amm_pathtoFinalCards</variable>
+		<width>0.1</width>
+		<action function="hide">amm_pathtoFinalCards</action>
+		<visible>false</visible>
+		</entry>
+	</hbox>
+	<hbox>
+		<entry auto-refresh="true">
+		<input>echo "/media/carlo/DATA/AircraftEngineering/MTC/@/@ FINAL CARDS"</input>
+		<variable>se_pathtoFinalCards</variable>
+		<width>0.1</width>
+		<action function="hide">se_pathtoFinalCards</action>
+		<visible>false</visible>
+		</entry>
+
+	</hbox>
+
+
+</vbox>
+
+
+
+
+
+</notebook>
+</window>'
+case $1 in 
+-d | --dump) "$MAIN_DIALOG"	 ;;
+*) $GTKDIALOG --program=MAIN_DIALOG --center ;;
+esac
+
+# PAL Variables
+#pathtoFinalCards="/home/mpla/Documents/SPLITpdf/AIRBUS CARDS/$actype/$actype FINAL CARDS"
+#SysFiles="/home/mpla/Documents/AirbusCardPrint"
+#$actype = @
+
+# Carlo Variables
+#pathtoFinalCards="/media/carlo/DATA/AircraftEngineering/MTC/$actype/$actype FINAL CARDS"
+#SysFiles="/media/carlo/DATA/AircraftEngineering/PAL Task Card Creation"
+#$actype = @
+
+
+
+

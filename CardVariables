@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+# Carlo Variables
+pathtoFinalCards="/media/carlo/DATA/AircraftEngineering/MTC/$actype/$actype FINAL CARDS"
+pathtoGraphRef="/media/carlo/DATA/AircraftEngineering/MTC/GRAPHREF"
+pathtoPDFAttach="/media/carlo/DATA/AircraftEngineering/MTC/PDFATTACH"
+StampFile="/media/carlo/DATA/AircraftEngineering/MTC/STAMP/A320STAMP.pdf"
+SysFiles="/media/carlo/DATA/AircraftEngineering/PAL Task Card Creation"
+
+# PAL Variables
+#pathtoFinalCards="/home/mpla/Documents/SPLITpdf/AIRBUS CARDS/$actype/$actype FINAL CARDS"
+#pathtoGraphRef="/home/mpla/Documents/AirbusCardCreator/CGMFiles/$actype"
+#pathtoPDFAttach="/home/mpla/Documents/AirbusCardCreator/CGMFiles/PDFATTACH"
+#StampFile="/home/mpla/Documents/AirbusCardCreator/CGMFiles/STAMP/$actypeSTAMP.pdf"
+#SysFiles="/home/mpla/Documents/AirbusCardPrint"
+

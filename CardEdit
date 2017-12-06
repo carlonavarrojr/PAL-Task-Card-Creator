@@ -1,0 +1,93 @@
+#!/bin/bash
+
+# Gets Called Out for the Card handling for Draft, Pending and Approving Cards
+
+command=$1
+card=$2
+
+if [ -z "$card"  ]
+	then
+		echo "Select a Card!"
+		exit
+fi
+
+actype=`echo $card | head -c 4`
+source CardVariables
+status=`cat "$pathtoFinalCards/$card" | sed -r "s#STATUS=\"#\nSTATUS=\"#" | grep "^STATUS=" | awk -F '"' '{print $2}'`
+revnum=`cat "$pathtoFinalCards/$card" | sed -r "s#REVNUM=\"#\nREVNUM=\"#" | grep "^REVNUM=" | awk -F '"' '{print $2}'`
+revnew=`echo "$revnum + 1" | bc | awk '{ printf("%02d", $1)}'`
+
+cardno=`echo $card |  sed "s#_P.sgm##g " | sed "s#_D.sgm##g " | sed "s#.sgm##g "`
+now=`date +"%d %b %Y"`
+
+case $status in
+ACTIV)
+	case $command in
+		DRAFT)
+			if [ -f "$pathtoFinalCards/${cardno}_D.sgm" ]
+				then
+				echo "Draft Card Already exists"
+				exit
+			else
+			cat "$pathtoFinalCards/$card" | sed "s#STATUS=\"ACTIV\"#STATUS=\"DRAFT\"#" | sed "s#CARDREVDATE=\"...........\"#CARDREVDATE=\"$now\"#" | sed "s#REVNUM=\"..\"#REVNUM=\"$revnew\"#" >  "$pathtoFinalCards/${cardno}_D.sgm"
+			fi
+			message=`echo "Created $card DRAFT Rev:$revnew $now"`
+			#log new created draft card!
+			CardLog "$card" "$message"
+			;;
+		REJECT) 	echo "Cannot Reject Active Card" ;	exit ;;
+		APPROVE)  	echo "Cannot Approve Active Card" ; 	exit ;;
+		VIEW) 	 	echo "on progress" ; exit;;
+		EDIT) 	 	echo "Cannot Edit Active Card" ; 	exit ;;
+	esac
+	;;
+PENDG)
+	case $command in
+		DRAFT)		echo "Can DRAFT only an Active Card" ;	exit ;;
+		REJECT) 
+			cat "$pathtoFinalCards/$card" | sed "s#STATUS=\"PENDG\"#STATUS=\"DRAFT\"#" | sed "s#CARDREVDATE=\"...........\"#CARDREVDATE=\"$now\"#" >  "$pathtoFinalCards/${cardno}_D.sgm"
+			rm  "$pathtoFinalCards/$card"
+			message=`echo "Rejected $card PENDING Rev:$revnum to DRAFT Rev:$revnum $now"`
+			# log rejected pending!
+			CardLog "$card" "$message"
+			;;
+		APPROVE) 	
+			cat "$pathtoFinalCards/$card" | sed "s#STATUS=\"PENDG\"#STATUS=\"ACTIV\"#" | sed "s#CARDREVDATE=\"...........\"#CARDREVDATE=\"$now\"#" >  "$pathtoFinalCards/${cardno}.sgm"
+			rm  "$pathtoFinalCards/$card"
+			message=`echo "Approved $card PENDING Rev:$revnum to ACTIVE Rev:$revnew $now"`
+			# delete old card to DELETED
+			# log approved pending!
+			CardLog "$card" "$message"
+			;;
+		VIEW) 	 	echo "on progress" ; 	exit ;;
+		EDIT) 	 	echo "Cannot Edit Pending Card" ; 	exit ;;
+
+	esac
+	;;
+DRAFT)
+	case $command in
+		DRAFT)		echo "Draft Card Already Exists" ;	exit ;;
+		REJECT) 
+			rm  "$pathtoFinalCards/$card"
+			message=`echo "Deleted $card Rev:$revnum from Deck"`
+			# delete old card to DELETED	
+			# log deleted draft!
+			CardLog "$card" "$message"
+			;;
+		APPROVE)
+			cat "$pathtoFinalCards/$card" | sed "s#STATUS=\"DRAFT\"#STATUS=\"PENDG\"#" | sed "s#CARDREVDATE=\"...........\"#CARDREVDATE=\"$now\"#" >  "$pathtoFinalCards/${cardno}_P.sgm"
+ 			rm  "$pathtoFinalCards/$card"	
+			message=`echo "Approved $card Rev:$revnew $now DRAFT to PENDING"`
+			# log approved pending!
+			CardLog "$card" "$message"
+			;;
+		VIEW) 	 	echo "Cannot Approve Active Card" ; 	exit ;;
+		EDIT) 	 	gedit --new-window "$pathtoFinalCards/$card" ;  	exit ;;
+
+	esac
+	;;
+*)
+	echo -e "Invalid Entry"
+	;;
+esac
+
