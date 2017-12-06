@@ -70,7 +70,7 @@ export MAIN_DIALOG='
 		<button><label>Search</label>
 		<variable>se_search_button</variable>
 		<action>clear:se_screen</action>
-		<action>echo \"$se_pathtoFinalCards\" -maxdepth 1 -type f -name \"*$se_search*\" | sed "s#@#${ed_actype}#g" | xargs find | sed "s#.*/##g" | sort -u > se_screen.txt </action>
+		<action>echo \"$se_pathtoFinalCards\" -maxdepth 1 -type f -name \"*$se_search*\" | sed "s#@#${se_actype}#g" | xargs find | sed "s#.*/##g" | sort -u > se_screen.txt </action>
 		<action>refresh:se_screen</action>
         	</button>
 		</hbox>
